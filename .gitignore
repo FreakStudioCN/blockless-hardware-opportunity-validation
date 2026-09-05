@@ -1,0 +1,14 @@
+# Re-creatable working files and browser profiles
+tmp/
+
+# Per-idea client deliverables and crawled records may contain third-party text.
+# Keep them local; retain only deliberate, anonymised fixtures if one is added later.
+output/
+
+# Downloaded source corpora are inputs to distillation, not release artifacts.
+corpus/creative-writing-source/
+
+# Python noise
+__pycache__/
+*.py[cod]
+.venv/

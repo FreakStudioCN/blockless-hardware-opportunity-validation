@@ -1,0 +1,10 @@
+{
+  "units": 10000,
+  "clusters": 24,
+  "source_counts": {
+    "COIG-Writer/Apache-2.0": 10000
+  },
+  "avg_chars": 50.1,
+  "avg_first_person": 0.39,
+  "limitation": "This is a style-feature index from licensed creative corpora, not a database of New Concept contest essays and not a source for copying prose."
+}
