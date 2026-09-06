@@ -4,6 +4,14 @@
 
 它依赖 `E:\startup-opportunity-validation` 的压缩知识包、评分框架及溯源数据；不复制原始 3GB+ 资料，也不会自动发送邮件或承诺制造。
 
+## 强制研究流程
+
+只输入产品名与描述时，skill 先生成问题空间和定向检索计划，再采集、聚类并审核相关记录。没有通过研究门禁，不允许生成客户邮件正文或机会报告。门禁检查命令：
+
+```powershell
+python .\blockless-hardware-opportunity\scripts\validate_research_gate.py --case-dir .\output\<产品-slug>
+```
+
 另外包含一个由 10,000 条授权中文创作参考单元压缩而成的“人味与愿景写作”库，位置在 `blockless-hardware-opportunity\assets\writing-style-reference\`。它会随 skill 安装；只用于指导叙事节奏、具体感和共同推进的语气，不用于复制原文或把愿景写成事实。原始本地语料的来源与分发边界见 [corpus/SOURCES.md](corpus/SOURCES.md)。
 
 本地证据匹配工具：

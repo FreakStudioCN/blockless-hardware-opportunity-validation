@@ -1,4 +1,4 @@
 interface:
   display_name: "Blockless Hardware Opportunity"
   short_description: "将一句硬件创意变成证据型机会评估、客户报告和渐进行动包。"
-  default_prompt: "请评估这个硬件创意：<一句话描述>"
+  default_prompt: "请评估这个硬件创意。输入：产品名：<名称>；描述：<描述>。必须先完成并保存问题空间拆解、定向论坛检索、采集、相关性审核和研究门禁验证；验证通过后才写客户邮件与 PDF。"
