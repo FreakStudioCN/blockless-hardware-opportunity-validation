@@ -4,8 +4,18 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
+
+
+STOP_WORDS = {"a", "an", "and", "app", "for", "in", "of", "on", "the", "through", "to", "with", "without"}
+MAX_QUERY_WORDS = 5
+MIN_CORE_TERMS = 3
+
+
+def content_words(query: str) -> list[str]:
+    return [word.lower() for word in re.findall(r"[a-zA-Z0-9]+", query) if word.lower() not in STOP_WORDS]
 
 
 DIMENSIONS = {
@@ -59,6 +69,15 @@ def main() -> None:
             errors.append("Targeted queries must cover at least 4 problem-space dimensions")
         elif any(not isinstance(item, dict) or not str(item.get("query", "")).strip() or not str(item.get("why", "")).strip() for item in queries):
             errors.append("Every query needs non-empty query and why fields")
+        else:
+            # Public search APIs match the phrase; sentences of six or more content words
+            # return nothing and the bigram fallback then searches something else entirely.
+            for item in queries:
+                if len(content_words(str(item.get("query", "")))) > MAX_QUERY_WORDS:
+                    errors.append(f"Query too long ({MAX_QUERY_WORDS} content words max, 2-3 is best): {item.get('query')}")
+        core_terms = plan.get("core_terms")
+        if not nonempty_list(core_terms) or len([term for term in core_terms if isinstance(term, str) and term.strip()]) < MIN_CORE_TERMS:
+            errors.append(f"research-plan.json must list at least {MIN_CORE_TERMS} core_terms (words the idea cannot be described without) for the relevance review")
 
     log = read_json(case_dir / "evidence" / "public-signals" / "collection-log.json", errors)
     if isinstance(log, dict):
@@ -86,6 +105,12 @@ def main() -> None:
             errors.append("relevance-review.json must document at least 30 accepted, task-relevant records")
         elif any(not isinstance(row, dict) or not str(row.get("url", "")).strip() or not str(row.get("task_link", "")).strip() or not str(row.get("signal", "")).strip() for row in accepted):
             errors.append("Each accepted record needs url, task_link, and signal")
+        elif any(not str(row.get("body", "")).strip() for row in accepted):
+            errors.append("Each accepted record needs the full collected body; re-run review_relevance.py")
+        elif len({str(row.get("url")) for row in accepted}) != len(accepted):
+            errors.append("relevance-review.json repeats a URL; each record must be cited once")
+        if not nonempty_list(review.get("core_terms")):
+            errors.append("relevance-review.json was produced without core_terms; re-run review_relevance.py")
 
     if errors:
         print("RESEARCH GATE: BLOCKED", file=sys.stderr)

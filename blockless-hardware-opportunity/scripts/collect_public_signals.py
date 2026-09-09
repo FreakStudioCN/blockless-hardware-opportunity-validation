@@ -36,12 +36,12 @@ STOP_WORDS = {"a", "an", "and", "app", "for", "in", "of", "on", "the", "through"
 
 
 def query_variants(query: str) -> list[str]:
-    """Keep the full task phrase but also search compact, auditable phrase variants."""
+    """Always search the full task phrase; for long phrases also search the last two bigrams."""
     words = [word.lower() for word in re.findall(r"[a-zA-Z0-9]+", query) if word.lower() not in STOP_WORDS]
     variants = [query]
     if len(words) > 3:
         pairs = [" ".join(words[index:index + 2]) for index in range(len(words) - 1)]
-        variants = pairs[-2:]
+        variants.extend(pairs[-2:])
     return list(dict.fromkeys(variant for variant in variants if variant.strip()))
 
 
@@ -72,10 +72,14 @@ def reddit(query: str, limit: int, parent_query: str | None = None) -> list[dict
     return rows
 
 
+DEFAULT_STACKEXCHANGE_SITES = "electronics,diy,superuser,parenting,workplace,psychology"
+STACKEXCHANGE_SITES: list[str] = DEFAULT_STACKEXCHANGE_SITES.split(",")
+
+
 def stackexchange(query: str, limit: int, parent_query: str | None = None) -> list[dict[str, str]]:
     """Query public Q&A communities outside Reddit; no account or login required."""
     results: list[dict[str, str]] = []
-    for site in ("workplace", "psychology"):
+    for site in STACKEXCHANGE_SITES:
         params = {"site": site, "q": query, "pagesize": min(limit, 100), "order": "desc", "sort": "activity", "filter": "withbody"}
         data = get_json("https://api.stackexchange.com/2.3/search/advanced?" + urllib.parse.urlencode(params))
         for item in data.get("items", []):
@@ -110,7 +114,9 @@ def main() -> None:
     parser.add_argument("--include-reddit", action="store_true", help="Supplement non-Reddit sources with Reddit when its public endpoint is reachable")
     parser.add_argument("--pause-seconds", type=float, default=1.0)
     parser.add_argument("--max-workers", type=int, default=4, help="Maximum concurrent public requests")
+    parser.add_argument("--stackexchange-sites", default=DEFAULT_STACKEXCHANGE_SITES, help="Comma-separated Stack Exchange site slugs; pick the communities where this idea's users actually ask")
     args = parser.parse_args()
+    STACKEXCHANGE_SITES[:] = [part.strip() for part in args.stackexchange_sites.split(",") if part.strip()]
     queries = [part.strip() for part in args.queries.split(",") if part.strip()]
     args.output_dir.mkdir(parents=True, exist_ok=True)
     raw_path, log_path = args.output_dir / "raw-signals.jsonl", args.output_dir / "collection-log.json"
