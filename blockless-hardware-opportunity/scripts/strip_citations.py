@@ -22,7 +22,16 @@ def strip(text: str) -> str:
 
 
 def banned_words(text: str) -> list[str]:
-    return [word for word in CLIENT_BANNED if word in text]
+    """CJK terms match as substrings; ASCII terms match as whole, case-sensitive words so product
+    names such as "Skills Manager" or "Kill Bill" are not caught by "skill" / "Kill"."""
+    hits = []
+    for word in CLIENT_BANNED:
+        if word.isascii() and word.isalpha():
+            if re.search(r"(?<![A-Za-z])" + re.escape(word) + r"(?![A-Za-z])", text):
+                hits.append(word)
+        elif word in text:
+            hits.append(word)
+    return hits
 
 
 def main() -> None:
