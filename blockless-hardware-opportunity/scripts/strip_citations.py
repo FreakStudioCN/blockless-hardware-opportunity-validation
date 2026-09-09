@@ -26,8 +26,9 @@ def banned_words(text: str) -> list[str]:
     names such as "Skills Manager" or "Kill Bill" are not caught by "skill" / "Kill"."""
     hits = []
     for word in CLIENT_BANNED:
-        if word.isascii() and word.isalpha():
-            if re.search(r"(?<![A-Za-z])" + re.escape(word) + r"(?![A-Za-z])", text):
+        if word.isascii() and word.isalnum():
+            # Whole token only: "429" inside a URL or a record count is not a status code.
+            if re.search(r"(?<![0-9A-Za-z/])" + re.escape(word) + r"(?![0-9A-Za-z])", text):
                 hits.append(word)
         elif word in text:
             hits.append(word)
