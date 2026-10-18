@@ -17,16 +17,23 @@ EDGE = Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
 
 def browser() -> list[str]:
     """Edge on Windows; on Linux (cloud routines) Chromium, which needs --no-sandbox when running as root."""
+    linux_flags = [] if os.name == "nt" else ["--no-sandbox", "--disable-dev-shm-usage"]
     override = os.environ.get("BLOCKLESS_PDF_BROWSER")
     if override:
-        return [override] + ([] if os.name == "nt" else ["--no-sandbox"])
+        return [override, *linux_flags]
     if EDGE.is_file():
         return [str(EDGE)]
     for name in ("chromium", "chromium-browser", "google-chrome", "google-chrome-stable"):
         found = shutil.which(name)
         if found:
-            return [found, "--no-sandbox"]
+            return [found, *linux_flags]
     raise SystemExit(f"no browser for PDF rendering: not at {EDGE}, no chromium on PATH; set BLOCKLESS_PDF_BROWSER")
+
+
+def run_browser(cmd: list[str]) -> None:
+    r = subprocess.run(cmd, capture_output=True, text=True, errors="replace", timeout=60)
+    if r.returncode:
+        raise SystemExit(f"browser exited {r.returncode}: {' '.join(cmd[:3])}\n{(r.stderr or r.stdout)[-1500:]}")
 
 
 def markdown_html(markdown: str) -> str:
@@ -90,8 +97,8 @@ def main() -> None:
         source.write_text(markdown_html(args.input.read_text(encoding="utf-8")), encoding="utf-8")
         if args.preview:
             args.preview.parent.mkdir(parents=True, exist_ok=True)
-            subprocess.run([*exe, "--headless", "--disable-gpu", f"--user-data-dir={temp_path / 'preview-profile'}", "--window-size=1240,1754", f"--screenshot={args.preview.resolve()}", source.resolve().as_uri()], check=True, capture_output=True, timeout=60)
-        subprocess.run([*exe, "--headless", "--disable-gpu", f"--user-data-dir={temp_path / 'profile'}", f"--print-to-pdf={args.output.resolve()}", source.resolve().as_uri()], check=True, capture_output=True, timeout=60)
+            run_browser([*exe, "--headless", "--disable-gpu", f"--user-data-dir={temp_path / 'preview-profile'}", "--window-size=1240,1754", f"--screenshot={args.preview.resolve()}", source.resolve().as_uri()])
+        run_browser([*exe, "--headless", "--disable-gpu", f"--user-data-dir={temp_path / 'profile'}", f"--print-to-pdf={args.output.resolve()}", source.resolve().as_uri()])
     if not args.output.is_file() or args.output.stat().st_size < 1000:
         raise SystemExit("PDF was not created or is unexpectedly small")
     if args.preview and (not args.preview.is_file() or args.preview.stat().st_size < 1000):
