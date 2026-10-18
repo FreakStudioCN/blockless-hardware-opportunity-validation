@@ -75,7 +75,7 @@ def markdown_html(markdown: str) -> str:
     close_blocks()
     return """<!doctype html><html><meta charset=\"utf-8\"><style>
       @page { size: A4; margin: 18mm 16mm; }
-      body { font-family: 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'SimSun', sans-serif; color:#1b2638; font-size:10.5pt; line-height:1.65; }
+      body { font-family: 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', 'WenQuanYi Zen Hei', 'SimSun', sans-serif; color:#1b2638; font-size:10.5pt; line-height:1.65; }
       h1 { font-size:23pt; line-height:1.25; color:#12375b; margin:0 0 18px; }
       h2 { font-size:14pt; color:#0c6b75; margin:23px 0 8px; border-bottom:1px solid #d5e3e7; padding-bottom:4px; }
       p { margin:0 0 10px; } li { margin:0 0 6px; } ul { padding-left:22px; }
