@@ -120,6 +120,7 @@ def main() -> None:
     parser.add_argument("--pause-seconds", type=float, default=1.0)
     parser.add_argument("--max-workers", type=int, default=4, help="Maximum concurrent public requests")
     parser.add_argument("--stackexchange-sites", default=DEFAULT_STACKEXCHANGE_SITES, help="Comma-separated Stack Exchange site slugs; pick the communities where this idea's users actually ask")
+    parser.add_argument("--sources", default="github,hackernews,stackexchange", help="Comma-separated primary sources; a Claude cloud session cannot reach GitHub search, so it collects GitHub elsewhere")
     args = parser.parse_args()
     STACKEXCHANGE_SITES[:] = [part.strip() for part in args.stackexchange_sites.split(",") if part.strip()]
     queries = [part.strip() for part in args.queries.split(",") if part.strip()]
@@ -128,7 +129,8 @@ def main() -> None:
     logs, rows = [], []
     # Reddit is supplementary only: its unauthenticated endpoint is often blocked.
     # The required primary evidence comes from the non-Reddit public sources below.
-    sources = [("github", github), ("hackernews", hn), ("stackexchange", stackexchange)]
+    primary = {"github": github, "hackernews": hn, "stackexchange": stackexchange}
+    sources = [(name, primary[name]) for name in (part.strip() for part in args.sources.split(",")) if name]
     if args.include_reddit:
         sources.append(("reddit", reddit))
 
